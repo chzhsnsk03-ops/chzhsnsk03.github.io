@@ -1,46 +1,82 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>초코 간식 계산기</title>
+<title>초코 건강 수첩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* Layout: one narrow column — 오늘 한도 게이지가 위, 재료별 저울 행이 아래 */
+/* Layout: 탭 두 개(간식 계산기 · 음수량 기록)를 한 기둥에, 아래 고정 탭 바로 전환 */
 :root {
-  --bg: #f3f6f4;
+  --bg: #f3f6f5;
   --surface: #ffffff;
-  --fg: #1f2a26;
-  --muted: #5f6e68;
-  --line: #d9e2dd;
-  --accent: #2f7d62;
-  --accent-soft: #e2f0ea;
+  --fg: #1e2a2a;
+  --muted: #5e6e6c;
+  --line: #d8e1df;
+  --grid: #e6edeb;
+  --track: #e5ebe8;
+  --green: #2f7d62;
+  --green-soft: #e2f0ea;
+  --water: #2a74a8;
+  --water-soft: #e1eef7;
+  --accent: var(--green);
+  --accent-soft: var(--green-soft);
+  --target: var(--green);
   --warn: #b7791f;
   --over: #c0392b;
-  --track: #e5ebe8;
   --display: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #141a18; --surface: #1c2421; --fg: #e6eeea; --muted: #9aaba4;
-    --line: #2d3834; --accent: #5cc29c; --accent-soft: #1f3a30;
-    --warn: #e0a84a; --over: #ef6f5e; --track: #2a3430; color-scheme: dark;
+    --bg: #131a19; --surface: #1b2423; --fg: #e5edeb; --muted: #99aaa6;
+    --line: #2c3836; --grid: #222d2c; --track: #2a3432;
+    --green: #5cc29c; --green-soft: #1f3a30; --water: #6cb4e6; --water-soft: #1d3444;
+    --warn: #e0a84a; --over: #ef6f5e; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #141a18; --surface: #1c2421; --fg: #e6eeea; --muted: #9aaba4;
-  --line: #2d3834; --accent: #5cc29c; --accent-soft: #1f3a30;
-  --warn: #e0a84a; --over: #ef6f5e; --track: #2a3430; color-scheme: dark;
+  --bg: #131a19; --surface: #1b2423; --fg: #e5edeb; --muted: #99aaa6;
+  --line: #2c3836; --grid: #222d2c; --track: #2a3432;
+  --green: #5cc29c; --green-soft: #1f3a30; --water: #6cb4e6; --water-soft: #1d3444;
+  --warn: #e0a84a; --over: #ef6f5e; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
   background: var(--bg); color: var(--fg);
   font-family: var(--body); font-size: 15px; line-height: 1.5;
-  padding: 24px 16px 40px;
+  padding: 24px 16px calc(96px + env(safe-area-inset-bottom, 0px));
 }
-main { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.panel { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+#snack { gap: 20px; }
+#water { --accent: var(--water); --accent-soft: var(--water-soft); }
 h1 { font-family: var(--display); font-weight: 400; font-size: 1.75rem; margin: 0; text-wrap: balance; }
+h2 { font-size: 1.05rem; margin: 0; font-weight: 700; }
 .sub { color: var(--muted); margin: 4px 0 0; font-size: .9rem; }
 .num { font-variant-numeric: tabular-nums; }
+.note { color: var(--muted); font-size: .8rem; margin: 0; max-width: 60ch; }
+.sync { margin: 10px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
+.sync .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.sync.on { color: var(--green); font-weight: 500; }
+.sync.on .dot { background: var(--green); }
 
+/* 아래 탭 바 */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+}
+.tabbar-inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tab {
+  min-height: 52px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg);
+  color: var(--muted); font-family: var(--body); font-size: 1rem; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.tab .mark { width: 10px; height: 10px; border-radius: 50%; background: currentColor; opacity: .5; }
+.tab[aria-selected="true"] { font-weight: 700; }
+.tab[data-tab="snack"][aria-selected="true"] { color: var(--green); background: var(--green-soft); border-color: var(--green); }
+.tab[data-tab="water"][aria-selected="true"] { color: var(--water); background: var(--water-soft); border-color: var(--water); }
+.tab[aria-selected="true"] .mark { opacity: 1; }
+.tab:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+/* ── 간식 계산기 ── */
 .gauge {
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
   padding: 18px; display: flex; flex-direction: column; gap: 12px;
@@ -80,11 +116,11 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 1.75rem; margin: 
 .gram-wrap input { width: 100%; height: 40px; text-align: center; font-size: 1.1rem; padding-right: 22px; }
 .gram-wrap span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
-input {
+#snack input {
   font-family: var(--body); font-variant-numeric: tabular-nums; color: var(--fg);
   background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px;
 }
-input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#snack input:focus-visible, #snack button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .reset {
@@ -94,7 +130,6 @@ input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); ou
 }
 .reset:hover { background: var(--accent); color: var(--surface); }
 .day { margin: -8px 0 0; color: var(--muted); font-size: .85rem; text-align: center; }
-.note { color: var(--muted); font-size: .8rem; margin: 0; max-width: 60ch; }
 .nogo {
   border: 2px solid var(--over); border-radius: 14px; padding: 16px 18px;
   background: color-mix(in srgb, var(--over) 7%, var(--surface));
@@ -103,14 +138,74 @@ input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); ou
 .nogo ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 14px; }
 .nogo li { color: var(--over); font-weight: 700; font-size: 1rem; }
 .nogo li::before { content: "✕ "; }
-.sync { margin: 10px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
-.sync .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
-.sync.on { color: var(--accent); font-weight: 500; }
-.sync.on .dot { background: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+
+/* ── 음수량 기록 ── */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+
+/* 입력 */
+.fields { display: grid; grid-template-columns: 10.5em 1fr 1fr; gap: 10px; }
+.field.date input { max-width: 10.5em; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: .8rem; color: var(--muted); font-weight: 500; }
+.field.wide { grid-column: 1 / -1; }
+#water input { font-family: var(--body); font-size: 1rem; font-variant-numeric: tabular-nums; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; width: 100%; min-width: 0; }
+#water input:focus-visible, #water button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.calc { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 10px 12px; background: var(--accent-soft); border-radius: 10px; }
+.calc b { font-size: 1.5rem; color: var(--accent); }
+.calc .hint { font-size: .8rem; color: var(--muted); }
+.primary { min-height: 52px; border: none; border-radius: 12px; background: var(--accent); color: var(--surface); font-family: var(--body); font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+.primary:disabled { opacity: .45; cursor: not-allowed; }
+.msg { font-size: .85rem; margin: 0; min-height: 1.3em; color: var(--muted); }
+.msg.ok { color: var(--target); }
+.msg.err { color: var(--over); }
+
+/* 요약 */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat span { font-size: .78rem; color: var(--muted); }
+.stat b { font-size: 1.35rem; }
+.stat small { font-size: .78rem; color: var(--muted); font-weight: 400; }
+
+/* 그래프 */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: none; background: transparent; color: var(--muted); font-family: var(--body); font-size: .85rem; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+#chart { width: 100%; min-height: 220px; }
+#chart svg { display: block; width: 100%; height: 240px; }
+.legend { display: flex; gap: 14px; font-size: .78rem; color: var(--muted); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--accent); vertical-align: middle; margin-right: 6px; }
+.legend i.t { border-top: 2px dashed var(--target); }
+.empty { color: var(--muted); font-size: .9rem; text-align: center; padding: 28px 8px; margin: 0; }
+
+/* 표 */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { font-size: .78rem; color: var(--muted); font-weight: 500; }
+td.r, th.r { text-align: right; }
+td.memo { white-space: normal; width: 100%; color: var(--muted); word-break: keep-all; overflow-wrap: anywhere; }
+td.act { padding-right: 0; }
+td b.low { color: var(--warn); }
+.ghost { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 6px 10px; font-family: var(--body); font-size: .85rem; cursor: pointer; }
+.ghost:hover { color: var(--fg); border-color: var(--muted); }
+.del {
+  border: 1.5px solid var(--over); color: var(--over); font-weight: 700;
+  background: color-mix(in srgb, var(--over) 12%, var(--surface));
+  border-radius: 8px; padding: 6px 12px; font-family: var(--body); font-size: .85rem; cursor: pointer;
+}
+.del:hover { background: color-mix(in srgb, var(--over) 22%, var(--surface)); }
+.del.confirm { background: var(--over); color: var(--surface); }
+@media (max-width: 460px) {
+  .fields { grid-template-columns: 1fr 1fr; }
+  .field.date { grid-column: 1 / -1; }
+  .field.date input { max-width: 11em; }
+}
 </style>
 
-<main>
+<main class="panel" id="snack" role="tabpanel" aria-labelledby="tab-snack">
   <header>
     <h1>초코 간식 계산기</h1>
     <p class="sub">먹일 양(g)을 넣으면 간식 열량을 합산해요. 채소는 찐 것 기준이에요.</p>
@@ -160,7 +255,93 @@ input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); ou
   </section>
 </main>
 
+<main class="panel" id="water" role="tabpanel" aria-labelledby="tab-water" hidden>
+  <header>
+    <h1>초코 음수량 기록</h1>
+    <p class="sub">하루 목표 250 g · 페트병 처음 무게에서 마지막 무게를 빼서 기록해요. 물은 1 g이 1 mL라서 그대로 비교하면 돼요.</p>
+    <p class="sync" id="wsync"><span class="dot"></span><span id="wsyncText">연결 중…</span></p>
+  </header>
+
+  <form class="card" id="form" novalidate>
+    <h2>기록하기</h2>
+    <div class="fields">
+      <div class="field date"><label for="date">날짜</label><input id="date" type="date" required></div>
+      <div class="field"><label for="poured">처음 무게 (g)</label><input id="poured" type="number" inputmode="decimal" min="0" step="1" placeholder="520"></div>
+      <div class="field"><label for="left">마지막 무게 (g)</label><input id="left" type="number" inputmode="decimal" min="0" step="1" placeholder="275"></div>
+      <div class="field wide"><label for="memo">메모 (선택)</label><input id="memo" type="text" maxlength="80" placeholder="예: 저녁에 1번 토함, 습식 사료 섞음"></div>
+    </div>
+    <div class="calc"><span>마신 양 <b class="num" id="drank">–</b> g</span><span class="hint" id="calcHint">처음 무게와 마지막 무게를 넣어 주세요</span></div>
+    <button class="primary" id="save" type="submit" disabled>기록하기</button>
+    <p class="msg" id="msg" aria-live="polite"></p>
+  </form>
+
+  <section class="card" aria-labelledby="sum-title">
+    <h2 id="sum-title">요약</h2>
+    <div class="stats">
+      <div class="stat"><span>최근 기록</span><b class="num" id="sLast">–</b><small id="sLastDate">&nbsp;</small></div>
+      <div class="stat"><span>최근 7일 평균</span><b class="num" id="s7">–</b><small id="s7n">&nbsp;</small></div>
+      <div class="stat"><span>최근 30일 평균</span><b class="num" id="s30">–</b><small id="s30n">&nbsp;</small></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="chart-title">
+    <div class="row-head">
+      <h2 id="chart-title">마신 양 추이</h2>
+      <div class="seg" role="group" aria-label="기간">
+        <button type="button" data-range="14" aria-pressed="true">2주</button>
+        <button type="button" data-range="30" aria-pressed="false">1달</button>
+        <button type="button" data-range="0" aria-pressed="false">전체</button>
+      </div>
+    </div>
+    <div id="chart"><p class="empty">아직 기록이 없어요. 위에서 첫 기록을 남기면 여기에 그래프가 그려져요.</p></div>
+    <div class="legend"><span><i></i>마신 양</span><span><i class="t"></i>목표 250 g</span></div>
+  </section>
+
+  <section class="card" aria-labelledby="table-title">
+    <div class="row-head">
+      <h2 id="table-title">기록 표</h2>
+      <button class="ghost" id="copy" type="button">표 텍스트로 복사</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>날짜</th><th class="r">마신 양</th><th>메모</th><th></th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="4" class="empty">기록이 쌓이면 최신순으로 여기에 표시돼요.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note">같은 날짜로 다시 기록하면 그날 기록이 새 값으로 바뀌어요. 병원에서는 이 표를 보여주거나, 복사해서 메시지로 보내면 돼요.</p>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="페이지 전환">
+  <div class="tabbar-inner" role="tablist">
+    <button class="tab" id="tab-snack" role="tab" data-tab="snack" aria-selected="true" aria-controls="snack" type="button"><span class="mark"></span>초코 간식 계산기</button>
+    <button class="tab" id="tab-water" role="tab" data-tab="water" aria-selected="false" aria-controls="water" type="button"><span class="mark"></span>초코 음수량 기록</button>
+  </div>
+</nav>
+
 <script>
+// ── 탭 전환 ──
+(() => {
+  const TKEY = "choco-care-tab";
+  function show(name) {
+    if (name !== "water") name = "snack";
+    document.getElementById("snack").hidden = name !== "snack";
+    document.getElementById("water").hidden = name !== "water";
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
+    try { localStorage.setItem(TKEY, name); } catch (e) {}
+    if (name === "water" && window.__waterChart) requestAnimationFrame(window.__waterChart);
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => show(t.dataset.tab)));
+  let start = location.hash === "#water" ? "water" : location.hash === "#snack" ? "snack" : null;
+  if (!start) { try { start = localStorage.getItem(TKEY); } catch (e) {} }
+  window.__showTab = show;
+  window.__startTab = start || "snack";
+})();
+</script>
+<script>
+// ── 간식 계산기 ──
+(() => {
 const KD_KCAL_PER_G = 3.991; // 힐스 k/d 라벨: 3991 kcal/kg
 const DEFAULTS = [
   { id: "carrot",   name: "당근 (찐 것)",       per100: 35 },
@@ -320,6 +501,221 @@ function goLocal() { if (unsub) unsub(); unsub = null; sharedRef = null; setSync
     setSync(true);
   } catch (e) { goLocal(); }
 })();
+})();
+</script>
+<script>
+// ── 음수량 기록 ──
+(() => {
+const TARGET = 250;
+const LKEY = "choco-water-v1";
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const WD = ["일", "월", "화", "수", "목", "금", "토"];
+const label = s => { const d = parse(s); return `${d.getMonth() + 1}/${d.getDate()} (${WD[d.getDay()]})`; };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let records = [];      // {date, poured, left, drank, memo}
+let col = null;        // db 컬렉션 (같이 보기)
+let range = 14;
+let pendingDelete = null;
+
+const $ = id => document.getElementById(id);
+$("date").value = ymd(new Date());
+
+// ---------- 저장소 ----------
+function loadLocal() { try { const r = JSON.parse(localStorage.getItem(LKEY)); return Array.isArray(r) ? r : []; } catch (e) { return []; } }
+function saveLocal() { try { localStorage.setItem(LKEY, JSON.stringify(records)); } catch (e) {} }
+function setSync(on) {
+  $("wsync").className = "sync" + (on ? " on" : "");
+  $("wsyncText").textContent = on ? "같이 보는 중 · 가족이 기록해도 여기에 쌓여요" : "이 폰에만 저장돼요";
+}
+function upsertLocal(rec) {
+  records = records.filter(r => r.date !== rec.date).concat(rec);
+  saveLocal(); renderAll();
+}
+
+async function saveRecord(rec) {
+  if (col) {
+    try { await col.doc(rec.date).set({ ...rec, updatedAt: Date.now() }); return; }
+    catch (e) { if (e && e.code === "invalid_argument") { goLocal(); } else { throw e; } }
+  }
+  upsertLocal(rec);
+}
+async function deleteRecord(date) {
+  if (col) {
+    try { await col.doc(date).delete(); return; }
+    catch (e) { if (e && e.code === "invalid_argument") goLocal(); else throw e; }
+  }
+  records = records.filter(r => r.date !== date); saveLocal(); renderAll();
+}
+let unsub = null;
+function goLocal() { if (unsub) unsub(); unsub = null; col = null; records = loadLocal(); setSync(false); renderAll(); }
+
+// ---------- 입력 ----------
+function readForm() {
+  const p = parseFloat($("poured").value), l = parseFloat($("left").value);
+  const ok = isFinite(p) && isFinite(l) && p >= 0 && l >= 0 && $("date").value;
+  return { ok: ok && l <= p, bad: ok && l > p, p, l };
+}
+function updateCalc() {
+  const f = readForm();
+  $("drank").textContent = f.ok ? Math.round(f.p - f.l) : "–";
+  const exists = records.some(r => r.date === $("date").value);
+  $("calcHint").textContent = f.bad ? "마지막 무게가 처음 무게보다 무거워요" :
+    !f.ok ? "처음 무게와 마지막 무게를 넣어 주세요" :
+    exists ? "이 날짜 기록을 새 값으로 바꿔요" :
+    (f.p - f.l >= TARGET ? "목표 250 g 달성" : `목표까지 ${Math.round(TARGET - (f.p - f.l))} g`);
+  $("save").disabled = !f.ok;
+  $("save").textContent = exists ? "이 날짜 기록 바꾸기" : "기록하기";
+}
+["date", "poured", "left"].forEach(id => $(id).addEventListener("input", updateCalc));
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = readForm(); if (!f.ok) return;
+  const rec = { date: $("date").value, poured: f.p, left: f.l, drank: Math.round(f.p - f.l), memo: $("memo").value.trim() };
+  $("save").disabled = true;
+  try {
+    await saveRecord(rec);
+    $("msg").className = "msg ok"; $("msg").textContent = `${label(rec.date)} ${rec.drank} g 기록했어요.`;
+    $("poured").value = ""; $("left").value = ""; $("memo").value = "";
+  } catch (err) {
+    $("msg").className = "msg err"; $("msg").textContent = "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.";
+  }
+  updateCalc();
+});
+
+// ---------- 요약 ----------
+function avgSince(days) {
+  const cut = new Date(); cut.setHours(0, 0, 0, 0); cut.setDate(cut.getDate() - (days - 1));
+  const xs = records.filter(r => parse(r.date) >= cut);
+  return xs.length ? { v: Math.round(xs.reduce((a, r) => a + r.drank, 0) / xs.length), n: xs.length } : null;
+}
+function renderStats() {
+  const sorted = [...records].sort((a, b) => a.date < b.date ? 1 : -1);
+  const last = sorted[0];
+  $("sLast").innerHTML = last ? `${last.drank}<small> g</small>` : "–";
+  $("sLastDate").textContent = last ? label(last.date) : " ";
+  const a7 = avgSince(7), a30 = avgSince(30);
+  $("s7").innerHTML = a7 ? `${a7.v}<small> g</small>` : "–";
+  $("s7n").textContent = a7 ? `${a7.n}일 기록` : " ";
+  $("s30").innerHTML = a30 ? `${a30.v}<small> g</small>` : "–";
+  $("s30n").textContent = a30 ? `${a30.n}일 기록` : " ";
+}
+
+// ---------- 그래프 ----------
+function renderChart() {
+  const box = $("chart");
+  if (!box.clientWidth) return; // 탭이 숨겨져 있으면 보일 때 그림
+  let xs = [...records].sort((a, b) => a.date < b.date ? -1 : 1);
+  if (range) {
+    const cut = new Date(); cut.setHours(0, 0, 0, 0); cut.setDate(cut.getDate() - (range - 1));
+    xs = xs.filter(r => parse(r.date) >= cut);
+  }
+  if (!xs.length) {
+    box.innerHTML = `<p class="empty">${records.length ? "이 기간에는 기록이 없어요." : "아직 기록이 없어요. 위에서 첫 기록을 남기면 여기에 그래프가 그려져요."}</p>`;
+    return;
+  }
+  const W = Math.max(280, box.clientWidth || 600), H = 240;
+  const m = { l: 40, r: 14, t: 14, b: 28 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const DAY = 864e5;
+  let t0 = parse(xs[0].date).getTime(), t1 = parse(xs[xs.length - 1].date).getTime();
+  if (range) { const end = new Date(); end.setHours(0, 0, 0, 0); t1 = Math.max(end.getTime(), t1); t0 = t1 - (range - 1) * DAY; xs = xs.filter(r => parse(r.date).getTime() >= t0); }
+  if (t1 === t0) { t0 -= DAY; t1 += DAY; }
+  const maxV = Math.max(TARGET, ...xs.map(r => r.drank));
+  const step = maxV > 400 ? 100 : 50;
+  const yMax = Math.ceil((maxV * 1.1) / step) * step;
+  const x = t => m.l + (t - t0) / (t1 - t0) * iw;
+  const y = v => m.t + ih - v / yMax * ih;
+  let g = "";
+  for (let v = 0; v <= yMax; v += step) {
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  }
+  // x 눈금: 최대 6개
+  const spanDays = Math.round((t1 - t0) / DAY);
+  const every = Math.max(1, Math.ceil(spanDays / 6));
+  for (let t = t0; t <= t1 + 1; t += every * DAY) {
+    const d = new Date(t);
+    g += `<text x="${x(t)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${d.getMonth() + 1}/${d.getDate()}</text>`;
+  }
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(TARGET)}" y2="${y(TARGET)}" stroke="var(--target)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  const pts = xs.map(r => [x(parse(r.date).getTime()), y(r.drank), r]);
+  if (pts.length > 1) {
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    g += `<path d="${d} L${pts[pts.length - 1][0].toFixed(1)} ${y(0)} L${pts[0][0].toFixed(1)} ${y(0)} Z" fill="var(--accent)" fill-opacity=".1"/>`;
+    g += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  pts.forEach((p, i) => {
+    const lastPt = i === pts.length - 1;
+    g += `<circle cx="${p[0]}" cy="${p[1]}" r="${lastPt ? 5 : 3.5}" fill="${lastPt ? "var(--accent)" : "var(--surface)"}" stroke="var(--accent)" stroke-width="2"><title>${label(p[2].date)} · ${p[2].drank} g${p[2].memo ? " · " + esc(p[2].memo) : ""}</title></circle>`;
+  });
+  const lp = pts[pts.length - 1];
+  const tx = Math.min(lp[0], W - m.r - 4);
+  g += `<text x="${tx}" y="${Math.max(lp[1] - 10, 12)}" text-anchor="end" font-size="12" font-weight="700" fill="var(--accent)">${lp[2].drank} g</text>`;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 마신 양 선 그래프">${g}</svg>`;
+}
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  range = Number(b.dataset.range);
+  document.querySelectorAll(".seg button").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+  renderChart();
+}));
+let rT; window.addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(renderChart, 150); });
+
+// ---------- 표 ----------
+function renderTable() {
+  const sorted = [...records].sort((a, b) => a.date < b.date ? 1 : -1);
+  if (!sorted.length) { $("tbody").innerHTML = `<tr><td colspan="4" class="empty">기록이 쌓이면 최신순으로 여기에 표시돼요.</td></tr>`; return; }
+  $("tbody").innerHTML = sorted.map(r => `
+    <tr>
+      <td class="num">${label(r.date)}</td>
+      <td class="r num"><b class="${r.drank < TARGET * 0.7 ? "low" : ""}">${r.drank}</b> g</td>
+      <td class="memo">${esc(r.memo)}</td>
+      <td class="r act"><button class="del ${pendingDelete === r.date ? "confirm" : ""}" type="button" data-del="${r.date}">${pendingDelete === r.date ? "정말 삭제" : "삭제"}</button></td>
+    </tr>`).join("");
+}
+$("tbody").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-del]"); if (!b) return;
+  const d = b.dataset.del;
+  if (pendingDelete !== d) { pendingDelete = d; renderTable(); return; }
+  pendingDelete = null;
+  try { await deleteRecord(d); } catch (err) { $("msg").className = "msg err"; $("msg").textContent = "삭제하지 못했어요. 다시 시도해 주세요."; }
+  renderTable();
+});
+$("copy").addEventListener("click", async () => {
+  const sorted = [...records].sort((a, b) => a.date < b.date ? -1 : 1);
+  const lines = ["초코 음수량 기록 (페트병 무게 차이, 목표 250 g, 물 1 g = 1 mL)", "날짜\t마신 양(g)\t메모"]
+    .concat(sorted.map(r => `${r.date}\t${r.drank}\t${r.memo || ""}`));
+  const a7 = avgSince(7); if (a7) lines.push(`최근 7일 평균: ${a7.v} g`);
+  try { await navigator.clipboard.writeText(lines.join("\n")); $("copy").textContent = "복사했어요"; }
+  catch (e) { $("copy").textContent = "복사가 안 돼요"; }
+  setTimeout(() => $("copy").textContent = "표 텍스트로 복사", 2000);
+});
+
+window.__waterChart = () => renderChart();
+function renderAll() { renderStats(); renderChart(); renderTable(); updateCalc(); }
+
+// ---------- 시작 ----------
+records = loadLocal();
+renderAll();
+(async () => {
+  try {
+    if (!window.claude || !window.claude.use) { setSync(false); return; }
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if (!db) { setSync(false); return; }
+    if (user && user.can && (await user.can("data.write")) === false) { setSync(false); return; }
+    col = db.collection("water");
+    setSync(true);
+    unsub = col.onSnapshot(snap => {
+      records = snap.docs.map(d => d.data()).filter(r => r && r.date && isFinite(r.drank))
+        .map(r => ({ date: r.date, poured: r.poured, left: r.left, drank: r.drank, memo: r.memo || "" }));
+      renderAll();
+    }, () => goLocal());
+  } catch (e) { goLocal(); }
+})();
+})();
+window.__showTab(window.__startTab);
 </script>
 
 </body></html>
